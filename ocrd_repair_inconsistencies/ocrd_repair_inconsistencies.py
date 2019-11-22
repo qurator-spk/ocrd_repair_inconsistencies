@@ -3,34 +3,18 @@ from __future__ import absolute_import
 import os.path
 from collections import Sequence
 
-from shapely.geometry import Polygon, LineString
-
 from ocrd import Processor
-from ocrd_utils import (
-    getLogger, concat_padded,
-    coordinates_for_segment,
-    coordinates_of_segment,
-    polygon_from_points,
-    points_from_polygon,
-    xywh_from_polygon,
-    MIMETYPE_PAGE
-)
 from ocrd_modelfactory import page_from_file
 from ocrd_models.ocrd_page import (
-    CoordsType,
-    LabelType, LabelsType,
-    MetadataItemType,
     to_xml
 )
-from ocrd_models.ocrd_page_generateds import (
-    RegionRefType,
-    RegionRefIndexedType,
-    OrderedGroupType,
-    OrderedGroupIndexedType,
-    UnorderedGroupType,
-    UnorderedGroupIndexedType,
-    ReadingOrderType
+from ocrd_utils import (
+    getLogger, concat_padded,
+    polygon_from_points,
+    MIMETYPE_PAGE
 )
+from shapely.geometry import Polygon
+
 from .config import OCRD_TOOL
 
 TOOL = 'ocrd_repair_inconsistencies'

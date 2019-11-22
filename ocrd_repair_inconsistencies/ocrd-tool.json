@@ -1,0 +1,22 @@
+{
+  "tools": {
+    "ocrd_repair_inconsistencies": {
+      "executable": "ocrd_repair_inconsistencies",
+      "categories": [
+        "Layout analysis"
+      ],
+      "description": "Repair glyph/word/line order inconsistencies",
+      "input_file_grp": [
+        "OCR-D-SEG-BLOCK"
+      ],
+      "output_file_grp": [
+        "OCR-D-SEG-BLOCK-FIXED"
+      ],
+      "steps": [
+        "layout/segmentation/region",
+        "layout/segmentation/line",
+        "layout/segmentation/words"
+      ]
+    }
+  }
+}

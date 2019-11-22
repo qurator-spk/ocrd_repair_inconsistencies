@@ -42,6 +42,21 @@ class RepairInconsistencies(Processor):
         kwargs['ocrd_tool'] = OCRD_TOOL['tools'][TOOL]
         super(RepairInconsistencies, self).__init__(*args, **kwargs)
 
+    def _fix_lines(self, region):
+        """Fix line order in a region"""
+
+        lines = region.get_TextLine()
+        region_text = get_text(region)
+        lines_text = get_text(lines, '\n')
+        if region_text != lines_text:
+            # XXX Assumes top-to-bottom
+            sorted_lines = sorted(lines, key=lambda l: Polygon(polygon_from_points(l.get_Coords().points)).centroid.y)
+            sorted_lines_text = get_text(sorted_lines, '\n')
+
+            if sorted_lines_text == region_text:
+                LOG.info('Fixing line order of region "%s"', region.id)
+                region.set_TextLine(sorted_lines)
+
     def _fix_words(self, line):
         """Fix word order in a line"""
 
@@ -82,6 +97,7 @@ class RepairInconsistencies(Processor):
 
             regions = page.get_TextRegion()
             for region in regions:
+                self._fix_lines(region)
 
                 lines = region.get_TextLine()
                 for line in lines:

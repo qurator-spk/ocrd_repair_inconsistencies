@@ -42,6 +42,36 @@ class RepairInconsistencies(Processor):
         kwargs['ocrd_tool'] = OCRD_TOOL['tools'][TOOL]
         super(RepairInconsistencies, self).__init__(*args, **kwargs)
 
+    def _fix_words(self, line):
+        """Fix word order in a line"""
+
+        words = line.get_Word()
+        line_text = get_text(line)
+        words_text = get_text(words, ' ')
+        if line_text != words_text:
+            # XXX Assumes left-to-right
+            sorted_words = sorted(words, key=lambda w: Polygon(polygon_from_points(w.get_Coords().points)).centroid.x)
+            sorted_words_text = get_text(sorted_words, ' ')
+
+            if sorted_words_text == line_text:
+                LOG.info('Fixing word order of line "%s"', line.id)
+                line.set_Word(sorted_words)
+
+    def _fix_glyphs(self, word):
+        """Fix glyph order in a word"""
+
+        glyphs = word.get_Glyph()
+        word_text = get_text(word)
+        glyphs_text = get_text(glyphs, '')
+        if word_text != glyphs_text:
+            # XXX Assumes left-to-right
+            sorted_glyphs = sorted(glyphs, key=lambda g: Polygon(polygon_from_points(g.get_Coords().points)).centroid.x)
+            sorted_glyphs_text = get_text(sorted_glyphs, '')
+
+            if sorted_glyphs_text == word_text:
+                LOG.info('Fixing glyph order of word "%s"', word.id)
+                word.set_Glyph(sorted_glyphs)
+
     def process(self):
         for (n, input_file) in enumerate(self.input_files):
             page_id = input_file.pageId or input_file.ID
@@ -49,40 +79,17 @@ class RepairInconsistencies(Processor):
             pcgts = page_from_file(self.workspace.download_file(input_file))
             page = pcgts.get_Page()
 
+
             regions = page.get_TextRegion()
             for region in regions:
 
                 lines = region.get_TextLine()
                 for line in lines:
-
-                    # Fix words in lines
-                    words = line.get_Word()
-                    line_text = get_text(line)
-                    words_text = get_text(words, ' ')
-                    if line_text != words_text:
-                        # XXX Assumes left-to-right
-                        sorted_words = sorted(words, key=lambda w: Polygon(polygon_from_points(w.get_Coords().points)).centroid.x)
-                        sorted_words_text = get_text(sorted_words, ' ')
-
-                        if sorted_words_text == line_text:
-                            LOG.info('Fixing word order of line "%s"', line.id)
-                            line.set_Word(sorted_words)
+                    self._fix_words(line)
 
                     words = line.get_Word()
                     for word in words:
-
-                        # Fix glyphs in words
-                        glyphs = word.get_Glyph()
-                        word_text = get_text(word)
-                        glyphs_text = get_text(glyphs, '')
-                        if word_text != glyphs_text:
-                            # XXX Assumes left-to-right
-                            sorted_glyphs = sorted(glyphs, key=lambda g: Polygon( polygon_from_points(g.get_Coords().points)).centroid.x)
-                            sorted_glyphs_text = get_text(sorted_glyphs, '')
-
-                            if sorted_glyphs_text == word_text:
-                                LOG.info('Fixing glyph order of word "%s"', word.id)
-                                word.set_Glyph(sorted_glyphs)
+                        self._fix_glyphs(word)
 
             file_id = input_file.ID.replace(self.input_file_grp, self.output_file_grp)
             if file_id == input_file.ID:

@@ -35,7 +35,13 @@ class RepairInconsistencies(Processor):
             page = pcgts.get_Page()
 
             regions = page.get_TextRegion()
+
             for region in regions:
+                if region.readingDirection != 'left-to-right':
+                    raise NotImplementedError
+                if region.textLineOrder != 'top-to-bottom':
+                    raise NotImplementedError
+
                 _fix_lines(region)
 
                 lines = region.get_TextLine()
@@ -62,7 +68,8 @@ def get_text(thing, joiner=None):
     """Get the text of the given thing, joining if necessary"""
 
     def _get_text_for_one(t):
-        # XXX Assumes len(TextEquiv) == 1
+        if len(t.get_TextEquiv()) != 1:
+            raise NotImplementedError
         try:
             return t.get_TextEquiv()[0].get_Unicode()
         except Exception:
@@ -82,7 +89,6 @@ def _fix_words(line):
     line_text = get_text(line)
     words_text = get_text(words, ' ')
     if line_text != words_text:
-        # XXX Assumes left-to-right
         sorted_words = sorted(words, key=lambda w: Polygon(polygon_from_points(w.get_Coords().points)).centroid.x)
         sorted_words_text = get_text(sorted_words, ' ')
 
@@ -98,7 +104,6 @@ def _fix_glyphs(word):
     word_text = get_text(word)
     glyphs_text = get_text(glyphs, '')
     if word_text != glyphs_text:
-        # XXX Assumes left-to-right
         sorted_glyphs = sorted(glyphs, key=lambda g: Polygon(polygon_from_points(g.get_Coords().points)).centroid.x)
         sorted_glyphs_text = get_text(sorted_glyphs, '')
 
@@ -114,7 +119,6 @@ def _fix_lines(region):
     region_text = get_text(region)
     lines_text = get_text(lines, '\n')
     if region_text != lines_text:
-        # XXX Assumes top-to-bottom
         sorted_lines = sorted(lines, key=lambda l: Polygon(polygon_from_points(l.get_Coords().points)).centroid.y)
         sorted_lines_text = get_text(sorted_lines, '\n')
 

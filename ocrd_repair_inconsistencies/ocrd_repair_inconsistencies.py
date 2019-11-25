@@ -38,9 +38,11 @@ class RepairInconsistencies(Processor):
 
             for region in regions:
                 if region.readingDirection != 'left-to-right':
-                    raise NotImplementedError
-                if region.textLineOrder != 'top-to-bottom':
-                    raise NotImplementedError
+                    LOG.info('Not processing region "%s" (not left-to-right)', region.id)
+                    continue
+                if len(region.get_TextLine()) > 1 and region.textLineOrder != 'top-to-bottom':
+                    LOG.info('Not processing region "%s" (not top-to-bottom)', region.id)
+                    continue
 
                 _fix_lines(region)
 

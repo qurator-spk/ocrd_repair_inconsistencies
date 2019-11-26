@@ -6,7 +6,8 @@ PAGE-XML elements with textual annotation are re-ordered by their centroid coord
 in top-to-bottom/left-to-right fashion iff such re-ordering fixes the inconsistency
 between their appropriately concatenated `TextEquiv` texts with their parent's `TextEquiv` text.
 
-This processor does not affect `ReadingOrder` between regions, just the order of the XML elements below the region level, and only if not contradicting the annotated `textLineOrder`/`readingDirection`.
+This processor does not affect `ReadingOrder` between regions, just the order of the XML elements
+below the region level, and only if not contradicting the annotated `textLineOrder`/`readingDirection`.
 
 We wrote this as a one-shot script to fix some files. Use with caution.
 

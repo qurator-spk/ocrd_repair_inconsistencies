@@ -1,7 +1,7 @@
 # ocrd_repair_inconsistencies
 
 Automatically fix PAGE-XML order inconsistencies in regions, lines and words.
-Children elements are only reordered if reordering by coordinates
+Child elements are only reordered if reordering by coordinates
 top-to-bottom/left-to-right fixes the appropriately concatenated `TextEquiv`
 texts of the children to match the parent's `TextEquiv` text. This processor
 does not change reading order, just the order of the XML elements in the file.

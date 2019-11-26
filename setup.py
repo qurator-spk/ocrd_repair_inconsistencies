@@ -17,7 +17,7 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'ocrd_repair_inconsistencies=ocrd_repair_inconsistencies.cli:ocrd_repair_inconsistencies',
+            'ocrd-repair-inconsistencies=ocrd_repair_inconsistencies.cli:ocrd_repair_inconsistencies',
         ]
     },
 )

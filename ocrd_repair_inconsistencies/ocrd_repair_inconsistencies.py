@@ -17,7 +17,7 @@ from shapely.geometry import Polygon
 
 from .config import OCRD_TOOL
 
-TOOL = 'ocrd_repair_inconsistencies'
+TOOL = 'ocrd-repair-inconsistencies'
 LOG = getLogger('processor.RepairInconsistencies')
 
 

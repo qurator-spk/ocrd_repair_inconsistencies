@@ -126,11 +126,12 @@ def _fix_words(line, page_id, reverse=False):
                               key=lambda w: Polygon(polygon_from_points(w.get_Coords().points)).centroid.x)
         sorted_words_text = get_text(sorted_words, ' ')
 
-        if sorted_words_text == line_text:
+        if (sorted_words_text == line_text or
+            sorted_words_text.replace(' ', '') == line_text.replace(' ', '')):
             LOG.info('Fixing word order of page "%s" line "%s"', page_id, line.id)
             line.set_Word(sorted_words)
         else:
-            LOG.debug('Resorting lines of page "%s" region "%s" from %s to %s does not suffice to turn "%s" into "%s"',
+            LOG.debug('Resorting lines of page "%s" line "%s" from %s to %s does not suffice to turn "%s" into "%s"',
                       page_id, line.id,
                       str([word.id for word in words]),
                       str([word.id for word in sorted_words]),
@@ -174,7 +175,8 @@ def _fix_lines(region, page_id, reverse=False):
                               key=lambda l: Polygon(polygon_from_points(l.get_Coords().points)).centroid.y)
         sorted_lines_text = get_text(sorted_lines, '\n')
 
-        if sorted_lines_text == region_text:
+        if (sorted_lines_text == region_text or
+            sorted_lines_text.replace('\n', '') == region_text.replace('\n', '')):
             LOG.info('Fixing line order of page "%s" region "%s"', page_id, region.id)
             region.set_TextLine(sorted_lines)
         else:

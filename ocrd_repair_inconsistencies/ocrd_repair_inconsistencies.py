@@ -7,6 +7,7 @@ from ocrd import Processor
 from ocrd_modelfactory import page_from_file
 from ocrd_models.ocrd_page import (
     TextRegionType, TextLineType, WordType,
+    MetadataItemType, LabelsType, LabelType,
     to_xml
 )
 from ocrd_utils import (
@@ -34,7 +35,20 @@ class RepairInconsistencies(Processor):
             LOG.info("INPUT FILE %i / %s", n, page_id)
             pcgts = page_from_file(self.workspace.download_file(input_file))
             page = pcgts.get_Page()
-
+            
+            # add metadata about this operation and its runtime parameters:
+            metadata = pcgts.get_Metadata() # ensured by from_file()
+            metadata.add_MetadataItem(
+                MetadataItemType(type_="processingStep",
+                                 name=self.ocrd_tool['steps'][0],
+                                 value=TOOL,
+                                 Labels=[LabelsType(
+                                     externalModel="ocrd-tool",
+                                     externalId="parameters",
+                                     Label=[LabelType(type_=name,
+                                                      value=self.parameter[name])
+                                            for name in self.parameter.keys()])]))
+            
             regions = page.get_TextRegion()
 
             for region in regions:

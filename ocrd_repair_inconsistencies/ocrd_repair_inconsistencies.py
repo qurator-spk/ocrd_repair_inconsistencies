@@ -6,6 +6,7 @@ from collections import Sequence
 from ocrd import Processor
 from ocrd_modelfactory import page_from_file
 from ocrd_models.ocrd_page import (
+    TextRegionType, TextLineType, WordType,
     to_xml
 )
 from ocrd_utils import (
@@ -49,7 +50,7 @@ class RepairInconsistencies(Processor):
                              page_id, region.id, textLineOrder)
                     continue
 
-                _fix_lines(region, page_id, reverse=textLineOrder=='bottom-to-top')
+                _fix_segment(region, page_id, reverse=textLineOrder=='bottom-to-top')
 
                 lines = region.get_TextLine()
                 for line in lines:
@@ -65,7 +66,7 @@ class RepairInconsistencies(Processor):
                                  page_id, line.id, readingDirection)
                         continue
                     
-                    _fix_words(line, page_id, reverse=readingDirection=='right-to-left')
+                    _fix_segment(line, page_id, reverse=readingDirection=='right-to-left')
 
                     words = line.get_Word()
                     for word in words:
@@ -81,7 +82,7 @@ class RepairInconsistencies(Processor):
                                      page_id, word.id, readingDirection)
                             continue
 
-                        _fix_glyphs(word, page_id, reverse=readingDirection=='right-to-left')
+                        _fix_segment(word, page_id, reverse=readingDirection=='right-to-left')
 
             file_id = input_file.ID.replace(self.input_file_grp, self.output_file_grp)
             if file_id == input_file.ID:
@@ -113,75 +114,48 @@ def get_text(thing, joiner=None):
     return text
 
 
-def _fix_words(line, page_id, reverse=False):
-    """Fix word order in a line"""
-
-    words = line.get_Word()
-    if not words:
+def _fix_segment(segment, page_id, reverse=False):
+    """Fix order of child elements of (region/line/word) segment."""
+    
+    if isinstance(segment, TextRegionType):
+        joiner = '\n'
+        sort_horizontal = False
+        children = segment.get_TextLine()
+        adoption = segment.set_TextLine
+    elif isinstance(segment, TextLineType):
+        joiner = ' '
+        sort_horizontal = True
+        children = segment.get_Word()
+        adoption = segment.set_Word
+    elif isinstance(segment, WordType):
+        joiner = ''
+        sort_horizontal = True
+        children = segment.get_Glyph()
+        adoption = segment.set_Glyph
+    else:
+        raise Exception('invalid element type %s of segment to fix' % type(segment))
+    if not children:
         return
-    line_text = get_text(line)
-    words_text = get_text(words, ' ')
-    if line_text != words_text:
-        sorted_words = sorted(words, reverse=reverse,
-                              key=lambda w: Polygon(polygon_from_points(w.get_Coords().points)).centroid.x)
-        sorted_words_text = get_text(sorted_words, ' ')
-
-        if (sorted_words_text == line_text or
-            sorted_words_text.replace(' ', '') == line_text.replace(' ', '')):
-            LOG.info('Fixing word order of page "%s" line "%s"', page_id, line.id)
-            line.set_Word(sorted_words)
+    segment_text = get_text(segment)
+    concat_text = get_text(children, joiner)
+    if (segment_text != concat_text and
+        segment_text.replace(joiner, '') != concat_text.replace(joiner, '')):
+        def polygon_position(child, horizontal=sort_horizontal):
+            polygon = Polygon(polygon_from_points(child.get_Coords().points))
+            if horizontal:
+                return polygon.centroid.x
+            else:
+                return polygon.centroid.y
+        sorted_children = sorted(children, reverse=reverse, key=polygon_position)
+        sorted_concat_text = get_text(sorted_children, joiner)
+        
+        if (segment_text == sorted_concat_text or
+            segment_text.replace(joiner, '') == sorted_concat_text.replace(joiner, '')):
+            LOG.info('Fixing element order of page "%s" segment "%s"', page_id, segment.id)
+            adoption(sorted_children)
         else:
-            LOG.debug('Resorting lines of page "%s" line "%s" from %s to %s does not suffice to turn "%s" into "%s"',
-                      page_id, line.id,
-                      str([word.id for word in words]),
-                      str([word.id for word in sorted_words]),
-                      words_text, line_text)
-
-
-def _fix_glyphs(word, page_id, reverse=False):
-    """Fix glyph order in a word"""
-
-    glyphs = word.get_Glyph()
-    if not glyphs:
-        return
-    word_text = get_text(word)
-    glyphs_text = get_text(glyphs, '')
-    if word_text != glyphs_text:
-        sorted_glyphs = sorted(glyphs, reverse=reverse,
-                               key=lambda g: Polygon(polygon_from_points(g.get_Coords().points)).centroid.x)
-        sorted_glyphs_text = get_text(sorted_glyphs, '')
-
-        if sorted_glyphs_text == word_text:
-            LOG.info('Fixing glyph order of page "%s" word "%s"', page_id, word.id)
-            word.set_Glyph(sorted_glyphs)
-        else:
-            LOG.debug('Resorting glyphs of page "%s" word "%s" from %s to %s does not suffice to turn "%s" into "%s"',
-                      page_id, word.id,
-                      str([glyph.id for glyph in glyphs]),
-                      str([glyph.id for glyph in sorted_glyphs]),
-                      glyphs_text, word_text)
-
-
-def _fix_lines(region, page_id, reverse=False):
-    """Fix line order in a region"""
-
-    lines = region.get_TextLine()
-    if not lines:
-        return
-    region_text = get_text(region)
-    lines_text = get_text(lines, '\n')
-    if region_text != lines_text:
-        sorted_lines = sorted(lines, reverse=reverse,
-                              key=lambda l: Polygon(polygon_from_points(l.get_Coords().points)).centroid.y)
-        sorted_lines_text = get_text(sorted_lines, '\n')
-
-        if (sorted_lines_text == region_text or
-            sorted_lines_text.replace('\n', '') == region_text.replace('\n', '')):
-            LOG.info('Fixing line order of page "%s" region "%s"', page_id, region.id)
-            region.set_TextLine(sorted_lines)
-        else:
-            LOG.debug('Resorting lines of page "%s" region "%s" from %s to %s does not suffice to turn "%s" into "%s"',
-                      page_id, region.id,
-                      str([line.id for line in lines]),
-                      str([line.id for line in sorted_lines]),
-                      lines_text, region_text)
+            LOG.debug('Resorting children of page "%s" segment "%s" from %s to %s does not suffice to turn "%s" into "%s"',
+                      page_id, segment.id,
+                      str([seg.id for seg in children]),
+                      str([seg.id for seg in sorted_children]),
+                      concat_text, segment_text)

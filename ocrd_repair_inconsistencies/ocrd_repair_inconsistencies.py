@@ -96,23 +96,24 @@ class RepairInconsistencies(Processor):
                 content=to_xml(pcgts))
 
 
-def get_text(thing, joiner=None):
+def get_text(thing, joiner=''):
     """Get the text of the given thing, joining if necessary"""
 
-    def _get_text_for_one(t):
-        if len(t.get_TextEquiv()) != 1:
-            raise NotImplementedError
+    def _get_text_for_one(one):
         try:
-            return t.get_TextEquiv()[0].get_Unicode()
+            return one.get_TextEquiv()[0].get_Unicode()
         except Exception:
+            LOG.warning('element "%s" has no text', one.id)
             return None
-
+    
     if isinstance(thing, Sequence):
-        text = joiner.join(_get_text_for_one(t) for t in thing)
+        texts = [_get_text_for_one(part) for part in thing]
+        if all(texts):
+            return joiner.join(texts)
+        else:
+            return None
     else:
-        text = _get_text_for_one(thing)
-    return text
-
+        return _get_text_for_one(thing)
 
 def _fix_segment(segment, page_id, reverse=False):
     """Fix order of child elements of (region/line/word) segment."""
@@ -138,7 +139,8 @@ def _fix_segment(segment, page_id, reverse=False):
         return
     segment_text = get_text(segment)
     concat_text = get_text(children, joiner)
-    if (segment_text != concat_text and
+    if (segment_text and concat_text and
+        segment_text != concat_text and
         segment_text.replace(joiner, '') != concat_text.replace(joiner, '')):
         def polygon_position(child, horizontal=sort_horizontal):
             polygon = Polygon(polygon_from_points(child.get_Coords().points))

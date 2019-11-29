@@ -64,7 +64,7 @@ class RepairInconsistencies(Processor):
                              page_id, region.id, textLineOrder)
                     continue
 
-                _fix_segment(region, page_id, reverse=textLineOrder=='bottom-to-top')
+                _fix_segment(region, page_id, reverse=(textLineOrder == 'bottom-to-top'))
 
                 lines = region.get_TextLine()
                 for line in lines:
@@ -80,7 +80,7 @@ class RepairInconsistencies(Processor):
                                  page_id, line.id, readingDirection)
                         continue
                     
-                    _fix_segment(line, page_id, reverse=readingDirection=='right-to-left')
+                    _fix_segment(line, page_id, reverse=(readingDirection == 'right-to-left'))
 
                     words = line.get_Word()
                     for word in words:
@@ -96,7 +96,7 @@ class RepairInconsistencies(Processor):
                                      page_id, word.id, readingDirection)
                             continue
 
-                        _fix_segment(word, page_id, reverse=readingDirection=='right-to-left')
+                        _fix_segment(word, page_id, reverse=(readingDirection == 'right-to-left'))
 
             file_id = input_file.ID.replace(self.input_file_grp, self.output_file_grp)
             if file_id == input_file.ID:
@@ -124,10 +124,8 @@ def get_text(thing, joiner=''):
         texts = [_get_text_for_one(part) for part in thing]
         if all(texts):
             return joiner.join(texts)
-        else:
-            return None
-    else:
-        return _get_text_for_one(thing)
+        return None
+    return _get_text_for_one(thing)
 
 def _fix_segment(segment, page_id, reverse=False):
     """Fix order of child elements of (region/line/word) segment."""
@@ -160,8 +158,7 @@ def _fix_segment(segment, page_id, reverse=False):
             polygon = Polygon(polygon_from_points(child.get_Coords().points))
             if horizontal:
                 return polygon.centroid.x
-            else:
-                return polygon.centroid.y
+            return polygon.centroid.y
         sorted_children = sorted(children, reverse=reverse, key=polygon_position)
         sorted_concat_text = get_text(sorted_children, joiner)
         
@@ -170,7 +167,8 @@ def _fix_segment(segment, page_id, reverse=False):
             LOG.info('Fixing element order of page "%s" segment "%s"', page_id, segment.id)
             adoption(sorted_children)
         else:
-            LOG.debug('Resorting children of page "%s" segment "%s" from %s to %s does not suffice to turn "%s" into "%s"',
+            LOG.debug('Resorting children of page "%s" segment "%s" from %s to %s' +
+                      'does not suffice to turn "%s" into "%s"',
                       page_id, segment.id,
                       str([seg.id for seg in children]),
                       str([seg.id for seg in sorted_children]),

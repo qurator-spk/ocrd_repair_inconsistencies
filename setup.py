@@ -5,8 +5,10 @@ from setuptools import setup, find_packages
 
 setup(
     name='ocrd_repair_inconsistencies',
+    version='0.1.0',
     description='Repair glyph/word/line order inconsistencies',
-    #long_description=codecs.open('README.md', encoding='utf-8').read(),
+    long_description=codecs.open('README.md', encoding='utf-8').read(),
+    long_description_content_type='text/markdown',
     author='Mike Gerber',
     author_email='mike.gerber@sbb.spk-berlin.de',
     license='Apache License 2.0',

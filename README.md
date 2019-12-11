@@ -1,6 +1,6 @@
 # ocrd_repair_inconsistencies
 
-    Automatically re-order lines, words and glyphs to become textually consistent with their parents.
+> Automatically re-order lines, words and glyphs to become textually consistent with their parents.
 
 ## Introduction
 

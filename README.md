@@ -58,5 +58,4 @@ for f in "$tmp_fg"/*; do
 done
 
 ocrd workspace remove-group -rf $tmp_fg
-rmdir $tmp_fg
 ~~~

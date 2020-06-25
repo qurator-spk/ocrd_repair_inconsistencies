@@ -48,8 +48,11 @@ class RepairInconsistencies(Processor):
                                      Label=[LabelType(type_=name,
                                                       value=self.parameter[name])
                                             for name in self.parameter.keys()])]))
-            
-            regions = page.get_TextRegion()
+
+            regions = []
+            regions.extend(page.get_TextRegion())
+            for special_region in page.get_TableRegion() + page.get_GraphicRegion():
+                regions.extend(special_region.get_TextRegion())
 
             for region in regions:
                 textLineOrder = 'top-to-bottom'

@@ -11,7 +11,9 @@ from ocrd_models.ocrd_page import (
     to_xml
 )
 from ocrd_utils import (
-    getLogger, concat_padded,
+    assert_file_grp_cardinality,
+    getLogger,
+    make_file_id,
     polygon_from_points,
     MIMETYPE_PAGE
 )
@@ -30,6 +32,9 @@ class RepairInconsistencies(Processor):
         super(RepairInconsistencies, self).__init__(*args, **kwargs)
 
     def process(self):
+        assert_file_grp_cardinality(self.input_file_grp, 1)
+        assert_file_grp_cardinality(self.output_file_grp, 1)
+
         for (n, input_file) in enumerate(self.input_files):
             page_id = input_file.pageId or input_file.ID
             LOG.info("INPUT FILE %i / %s", n, page_id)
@@ -101,9 +106,7 @@ class RepairInconsistencies(Processor):
 
                         _fix_segment(word, page_id, reverse=(readingDirection == 'right-to-left'))
 
-            file_id = input_file.ID.replace(self.input_file_grp, self.output_file_grp)
-            if file_id == input_file.ID:
-                file_id = concat_padded(self.output_file_grp, n)
+            file_id = make_file_id(input_file, self.output_file_grp)
             self.workspace.add_file(
                 ID=file_id,
                 file_grp=self.output_file_grp,

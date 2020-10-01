@@ -22,7 +22,6 @@ from shapely.geometry import Polygon
 from .config import OCRD_TOOL
 
 TOOL = 'ocrd-repair-inconsistencies'
-LOG = getLogger('processor.RepairInconsistencies')
 
 
 class RepairInconsistencies(Processor):
@@ -32,6 +31,7 @@ class RepairInconsistencies(Processor):
         super(RepairInconsistencies, self).__init__(*args, **kwargs)
 
     def process(self):
+        LOG = getLogger('processor.RepairInconsistencies')
         assert_file_grp_cardinality(self.input_file_grp, 1)
         assert_file_grp_cardinality(self.output_file_grp, 1)
 
@@ -118,6 +118,7 @@ class RepairInconsistencies(Processor):
 
 def get_text(thing, joiner=''):
     """Get the text of the given thing, joining if necessary"""
+    LOG = getLogger('processor.RepairInconsistencies')
 
     def _get_text_for_one(one):
         try:
@@ -135,6 +136,7 @@ def get_text(thing, joiner=''):
 
 def _fix_segment(segment, page_id, reverse=False):
     """Fix order of child elements of (region/line/word) segment."""
+    LOG = getLogger('processor.RepairInconsistencies')
     
     if isinstance(segment, TextRegionType):
         joiner = '\n'

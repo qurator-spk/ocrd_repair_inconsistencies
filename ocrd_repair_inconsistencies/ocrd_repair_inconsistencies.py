@@ -1,7 +1,12 @@
 from __future__ import absolute_import
 
 import os.path
-from collections import Sequence
+try:
+    from collections import Sequence
+except ImportError:
+    # With Python 3.10 Sequence has been moved to collections.abc.
+    from collections.abc import Sequence
+
 
 from ocrd import Processor
 from ocrd_modelfactory import page_from_file

@@ -1,3 +1,8 @@
+
+> [!CAUTION]
+> This was a one-off script, useful to solve a specific problem. We do not maintain it anymore, but in case you want to use it, we appreciate an e-mail to [mike.gerber@sbb.spk-berlin.de](mailto:mike.gerber@sbb.spk.berlin.de)
+> 🕸
+
 # ocrd_repair_inconsistencies
 
 > Automatically re-order lines, words and glyphs to become textually consistent with their parents.
